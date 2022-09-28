@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Lobby</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <!-- <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src='main.js'></script> -->
+</head>
+<body>
+    <h1>Let's Chat!</h1>
+
+    <!-- form to send msgs from -->
+    <form id="form">
+        <input type="text" name="message"/>
+    </form>
+
+    <!-- we will create a wrapper in the html -->
+    <div id="messages">
+        <!-- will remain empty until users begin to add messages on that form 
+        submission.-->
+    </div>
+
+
+    
+
+    <!-- 	To establish a websocket connection, we 1st need an end point
+         connection to start the handshake -->
+    <script type="text/javascript">
+        // instead of http, we use a websocket connection,will then grab the root
+        // url by giving the location host. And at the end of the url, we give 
+        // /ws/socket-server/
+        let url = `ws://${window.location.host}/ws/socket-server/`
+        // next, we will use the websocket object to set the chatsocket variable
+        // and pass in the above url
+        const chatSocket = new WebSocket(url)
+        // once we have our chat socket object, we can use the message event, 
+        // to listen to the messages from our server
+        // this will fire of anytime our server sends a messages from the backend.
+        // now lets set a function to handle this event
+        // message function
+        chatSocket.onmessage = function(e){
+            // now ,lets go and parse the data and console out whatever msgs
+            //  the server sends us
+            let data = JSON.parse(e.data)
+            console.log('Data:',data)
+            // At this point our socket connection is ready
+        
+
+
+            // handle the incoming messages from the server by 1st identifying the
+            // msg type
+            if(data.type === 'chat'){
+                // lets query the msgs
+                //  wrapper 1st and then we will create a 
+                // wrapper in the html
+                let messages = document.getElementById('messages') 
+
+                // will then take the messages container and simply append the
+                //  new msgs to the beginning of the wrapper we can do this by 
+                // using 'insertAdjacentHTML()'
+                // we will set 2 parameters here
+                // beforeend :--> to appear msgs at the top
+                // 2nd parameter :--> we'll use our template literals, so those 
+                // are backticks instead of quotes
+                // we will create a div to wrap the actual message that we are
+                // gonna add in here
+                // so msg will be in <p> tag
+                    // and we can throw the msg as a variable
+                messages.insertAdjacentHTML('beforeend', `<div>
+                                                            <p>${data.message}</p>
+                                                        </div>`)
+            }
+        }
+
+        
+
+        // query our form by using getElementById
+        // grab the forms 'id' and set this all to variable called form
+        let form = document.getElementById('form')
+        // event handler := to handle form submission
+        // set this to an arrow function
+        form.addEventListener('submit', (e)=> {
+            // prevent the default actions on submissions
+            e.preventDefault()
+            // grab the value of the form msg and set this to the message 
+            // variable
+            let message = e.target.message.value
+            
+            // stringify the msg and send it to the chat room using the send 
+            // method from our websocket object which is stored inside of the 
+            // chat socket variable.
+            chatSocket.send(JSON.stringify({
+                'message':message
+            }))
+            // once this msg is send, we want to make sure to reset this form by
+            // calling reset method
+            form.reset()
+        })
+
+    </script>
+</body>
+</html>
